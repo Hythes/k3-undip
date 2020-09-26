@@ -7,9 +7,36 @@ use Illuminate\Support\Facades\Route;
 Route::group(['prefix' => 'admin', 'middleware' => ['cors', 'assign.guard:admin']], function () {
     Route::post('register', 'AdminController@register');
     Route::post('login', 'AdminController@login');
+
     Route::group(['middleware' => ['jwt.auth', 'assign.guard:admin']], function () {
-        Route::get('dataK3', 'K3Controller@index');
-        Route::get('namaku', 'K3Controller@authData');
+        Route::group(['prefix' => 'k3'], function () {
+            Route::get("getData", 'K3Controller@getData');
+            Route::get('getDataSatu/{id}', 'K3Controller@getDataSatu');
+            Route::post("inputData", 'K3Controller@PelaporInputData');
+            Route::post("editData/{id}", 'K3Controller@editData');
+            Route::delete("hapusData/{id}", 'K3Controller@delete');
+        });
+        Route::group(['prefix' => 'dataAdmin'], function () {
+            Route::get("getData", 'AdminController@getData');
+            Route::get('getDataSatu/{id}', 'AdminController@getDataSatu');
+            Route::post("inputData", 'AdminController@inputData');
+            Route::post("editData/{id}", 'AdminController@editData');
+            Route::delete("hapusData/{id}", 'AdminController@delete');
+        });
+        Route::group(['prefix' => 'pelapor'], function () {
+            Route::get("getData", 'PelaporController@getData');
+            Route::get('getDataSatu/{id}', 'PelaporController@getDataSatu');
+            Route::post("inputData", 'PelaporController@inputData');
+            Route::post("editData/{id}", 'PelaporController@editData');
+            Route::delete("hapusData/{id}", 'PelaporController@delete');
+        });
+        Route::group(['prefix' => 'registerCode'], function () {
+            Route::get("getData", 'RegistrationCodeController@getData');
+            Route::get('getDataSatu/{id}', 'RegistrationCodeController@getDataSatu');
+            Route::post("inputData", 'RegistrationCodeController@inputData');
+            Route::post("editData/{id}", 'RegistrationCodeController@editData');
+            Route::delete("hapusData/{id}", 'RegistrationCodeController@delete');
+        });
     });
 });
 
