@@ -43,9 +43,9 @@ class K3Controller extends Controller
                 'id_pelapor' => Auth::id(),
             ]);
 
-            return response()->json(["message" => 'Laporan berhasil disimpan!'], 200);
+            return response()->json(["message" => 'Laporan berhasil disimpan!', "status" => 200], 200);
         } catch (Exception $e) {
-            return response()->json(["message" => $e->getMessage()], 500);
+            return response()->json(["message" => $e->getMessage(), "status" => 500], 500);
         }
     }
     public function PelaporCekStatus()
@@ -54,6 +54,7 @@ class K3Controller extends Controller
         $res = [
             'message' => 'data berhasil diambil!',
             'data' => $data,
+            "status" => 200,
         ];
         return response()->json($res, 200);
     }
@@ -62,7 +63,9 @@ class K3Controller extends Controller
         $data = K3::get();
         $res = [
             'message' => 'data berhasil diambil!',
-            'data' => $data
+            'data' => $data,
+            "status" => 200,
+
         ];
         return response()->json($res, 200);
     }
@@ -72,11 +75,13 @@ class K3Controller extends Controller
             $data = K3::findOrFail($id);
             $res = [
                 'message' => 'data berhasil diambil!',
-                'data' => $data
+                'data' => $data,
+                "status" => 200,
+
             ];
             return response()->json($res, 200);
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+            return response()->json(['message' => $e->getMessage(), "status" => 500], 400);
         }
     }
     public function editData(Request $request, $id)
@@ -90,7 +95,7 @@ class K3Controller extends Controller
                 'foto' => 'required|mimes:png,jpeg,jpg|max:5096',
             ]);
             if ($validate->fails()) {
-                return response()->json(['message' => $validate->errors()->toJson()], 400);
+                return response()->json(['message' => $validate->errors()->toJson(), "status" => 400], 400);
             }
             File::delete(storage_path($k3->foto));
             $file = $request->file('foto');
@@ -105,9 +110,9 @@ class K3Controller extends Controller
                 'id_pelapor' => Auth::id(),
             ]);
 
-            return response()->json(["message" => 'Laporan berhasil disimpan!'], 200);
+            return response()->json(["message" => 'Laporan berhasil disimpan!', "status" => 200], 200);
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return response()->json(['message' => $e->getMessage(), "status" => 500], 500);
         }
     }
     public function delete($id)
@@ -117,9 +122,9 @@ class K3Controller extends Controller
             File::delete(storage_path($k3->foto));
             $k3->delete();
 
-            return response()->json(['message' => 'data berhasil dihapus!'], 200);
+            return response()->json(['message' => 'data berhasil dihapus!', "status" => 200], 200);
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+            return response()->json(['message' => $e->getMessage(), "status" => 500], 500);
         }
     }
 }

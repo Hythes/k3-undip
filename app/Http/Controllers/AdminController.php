@@ -40,9 +40,9 @@ class AdminController extends Controller
         ]);
 
         $cred = $request->only("username", "password");
-
+        $status = 201;
         $token = JWTAuth::attempt($cred);
-        return response()->json(compact('admin', 'token'), 201);
+        return response()->json(compact('admin', 'token', 'status'), 201);
     }
 
     /**
@@ -56,12 +56,13 @@ class AdminController extends Controller
         $cred  = $request->only('username', 'password');
         try {
             if (!$token = JWTAuth::attempt($cred)) {
-                return response()->json(['error' => 'invalid_credentials'], 400);
+                return response()->json(['message' => 'invalid_credentials', "status" => 400], 400);
             }
+            $status = 200;
         } catch (JWTException $e) {
-            return response()->json(['error' => 'could_not_create_token'], 500);
+            return response()->json(['message' => 'could_not_create_token', "status" => 500], 500);
         }
-        return response()->json(compact('token'));
+        return response()->json(compact('token', 'status'));
     }
 
     /**
@@ -76,15 +77,16 @@ class AdminController extends Controller
             if (!$admin = JWTAuth::parseToken()->authenticate()) {
                 return response()->json(['user_not_found'], 404);
             }
+            $status = 200;
         } catch (TokenExpiredException $e) {
-            return response()->json(['token_expired'], $e->getStatusCode());
+            return response()->json(['token_expired', "status" => $e->getStatusCode()], $e->getStatusCode());
         } catch (TokenInvalidException $e) {
-            return response()->json(['token_invalid'], $e->getStatusCode());
+            return response()->json(['token_invalid', "status" => $e->getStatusCode()], $e->getStatusCode());
         } catch (JWTException $e) {
-            return response()->json(['token_absent'], $e->getStatusCode());
+            return response()->json(['token_absent', "status" => $e->getStatusCode()], $e->getStatusCode());
         }
 
-        return response()->json(compact('user'));
+        return response()->json(compact('user', 'status'));
     }
 
     /**

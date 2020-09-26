@@ -34,13 +34,14 @@ class PelaporController extends Controller
 
         try {
             if (!$token = JWTAuth::attempt($cred)) {
-                return response()->json(['error' => 'invalid_credentials'], 400);
+                return response()->json(['error' => 'invalid_credentials', "status" => $e->getStatusCode()], 400);
             }
+            $status = 201;
         } catch (JWTException $e) {
-            return response()->json(['error' => 'could_not_create_token'], 500);
+            return response()->json(['error' => 'could_not_create_token', "status" => $e->getStatusCode()], 500);
         }
 
-        return response()->json(compact('pelapor', 'token'), 201);
+        return response()->json(compact('pelapor', 'token', 'status'), 201);
     }
 
     public function login(Request $request)
@@ -48,11 +49,12 @@ class PelaporController extends Controller
         $cred = $request->only('nik', 'password');
         try {
             if (!$token = JWTAuth::attempt($cred)) {
-                return response()->json(['error' => 'invalid_credentials'], 400);
+                return response()->json(['error' => 'invalid_credentials', "status" => $e->getStatusCode()], 400);
             }
+            $status = 200;
         } catch (JWTException $e) {
-            return response()->json(['error' => 'could_not_create_token'], 500);
+            return response()->json(['error' => 'could_not_create_token', "status" => $e->getStatusCode()], 500);
         }
-        return response()->json(compact('token'), 200);
+        return response()->json(compact('token', 'status'), 200);
     }
 }
