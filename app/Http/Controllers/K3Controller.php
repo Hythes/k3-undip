@@ -28,7 +28,7 @@ class K3Controller extends Controller
                 'foto' => 'required|mimes:png,jpeg,jpg|max:5096',
             ]);
             if ($validate->fails()) {
-                return response()->json(['message' => $validate->errors()->toJson()], 400);
+                return response()->json(['message' => $validate->errors()->toJson(), "status" => 400], 400);
             }
 
             $file = $request->file('foto');
