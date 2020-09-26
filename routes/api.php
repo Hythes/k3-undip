@@ -4,6 +4,9 @@ use App\Events\TableUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+Route::post("/check", function () {
+    return response()->json(['message' => 'work!']);
+});
 Route::group(['prefix' => 'admin', 'middleware' => ['cors', 'assign.guard:admin']], function () {
     Route::post('register', 'AdminController@register');
     Route::post('login', 'AdminController@login');
