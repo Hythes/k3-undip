@@ -49,7 +49,7 @@ class PelaporController extends Controller
         $cred = $request->only('nik', 'password');
         try {
             if (!$token = JWTAuth::attempt($cred)) {
-                return response()->json(['error' => 'invalid_credentials', "status" => $e->getStatusCode()], 400);
+                return response()->json(['error' => 'invalid_credentials', "status" => 400], 400);
             }
             $status = 200;
         } catch (JWTException $e) {
@@ -95,7 +95,7 @@ class PelaporController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json($validator->errors()->toJson(), 400);
+                return response()->json(['message' => $validator->errors()->toJson(), 'status' => 400], 400);
             }
             $Pelapor->update([
                 'nik' => $request->input('nik'),

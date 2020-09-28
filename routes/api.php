@@ -34,6 +34,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['cors', 'assign.guard:admin'
             Route::post("editData/{id}", 'PelaporController@editData');
             Route::delete("hapusData/{id}", 'PelaporController@delete');
         });
+
         // Route::group(['prefix' => 'registerCode'], function () {
         //     Route::get("getData", 'RegistrationCodeController@getData');
         //     Route::get('getDataSatu/{id}', 'RegistrationCodeController@getDataSatu');
