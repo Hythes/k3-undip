@@ -65,50 +65,67 @@ class AdminController extends Controller
         return response()->json(compact('token', 'status'));
     }
 
-    /**
-     * Getting Token for admin
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function getAdmin(Request $request)
+    public function getData()
     {
         try {
-            if (!$admin = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['user_not_found'], 404);
-            }
-            $status = 200;
-        } catch (TokenExpiredException $e) {
-            return response()->json(['token_expired', "status" => $e->getStatusCode()], $e->getStatusCode());
-        } catch (TokenInvalidException $e) {
-            return response()->json(['token_invalid', "status" => $e->getStatusCode()], $e->getStatusCode());
-        } catch (JWTException $e) {
-            return response()->json(['token_absent', "status" => $e->getStatusCode()], $e->getStatusCode());
+            return response()->json([
+                'status' => 200,
+                'data' => Admin::all()
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
         }
-
-        return response()->json(compact('user', 'status'));
     }
 
-    /**
-     * Editing data Admin, not used for now
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Admin  $admin
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Admin $admin)
+    public function getDataSatu($id)
     {
-        //
+        try {
+            return response()->json([
+                'status' => 200,
+                'data' => Admin::find($id)
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
+        }
     }
 
-    /**
-     * Deleting data Admin, not used for now
-     *
-     * @param  \App\Admin  $admin
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Admin $admin)
+    public function editData(Request $request, $id)
     {
-        //
+        try {
+
+            $admin  = Admin::findOrFail($id);
+            $validator = Validator::make($request->all(), [
+                'nama' => 'required|string|max:255',
+                'username' => 'required|string|max:255|unique:admin',
+                'password' => 'required|string|min:6'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors()->toJson(), 400);
+            }
+            $admin->update([
+                'nama' => $request->input('nama'),
+                'username' => $request->input('username'),
+                'password' =>  Hash::make($request->input('password'))
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'data' => $admin
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
+        }
+    }
+    public function delete($id)
+    {
+        try {
+            $Admin = Admin::findOrFail($id);
+            $Admin->delete();
+
+            return response()->json(['message' => 'data berhasil dihapus!', "status" => 200], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), "status" => 500], 500);
+        }
     }
 }

@@ -57,4 +57,70 @@ class PelaporController extends Controller
         }
         return response()->json(compact('token', 'status'), 200);
     }
+
+    public function getData()
+    {
+        try {
+            return response()->json([
+                'status' => 200,
+                'data' => Pelapor::all()
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
+        }
+    }
+
+    public function getDataSatu($id)
+    {
+        try {
+            return response()->json([
+                'status' => 200,
+                'data' => Pelapor::find($id)
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
+        }
+    }
+
+    public function editData(Request $request, $id)
+    {
+        try {
+
+            $Pelapor  = Pelapor::findOrFail($id);
+            $validator = Validator::make($request->all(), [
+                'nik' => 'required|unique:pelapor|integer',
+                'nama' => 'required',
+                'alamat' => 'required',
+                'password' => 'required|min:8'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors()->toJson(), 400);
+            }
+            $Pelapor->update([
+                'nik' => $request->input('nik'),
+                'nama' => $request->input('nama'),
+                'alamat' => $request->input('alamat'),
+                'password' => Hash::make($request->input('password')),
+            ]);
+
+            return response()->json([
+                'status' => 200,
+                'data' => $Pelapor
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
+        }
+    }
+    public function delete($id)
+    {
+        try {
+            $Pelapor = Pelapor::findOrFail($id);
+            $Pelapor->delete();
+
+            return response()->json(['message' => 'data berhasil dihapus!', "status" => 200], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), "status" => 500], 500);
+        }
+    }
 }
