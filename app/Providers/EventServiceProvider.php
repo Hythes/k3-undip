@@ -18,7 +18,15 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        'App\Events\DataBaru' => [
+            'App\Listeners\KirimNotifikasiDataBaru'
+        ]
+
     ];
+    public function shouldDiscoverEvents()
+    {
+        return true;
+    }
 
     /**
      * Register any events for your application.

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Pelapor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -69,7 +70,15 @@ class PelaporController extends Controller
             return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
         }
     }
-
+    public function show()
+    {
+        $pelapor = Pelapor::paginate(10);
+        $data = [
+            'i' => 1,
+            'pelapor' => $pelapor
+        ];
+        return view('pelapor.index')->with($data);
+    }
     public function getDataSatu($id)
     {
         try {
@@ -117,8 +126,7 @@ class PelaporController extends Controller
         try {
             $Pelapor = Pelapor::findOrFail($id);
             $Pelapor->delete();
-
-            return response()->json(['message' => 'data berhasil dihapus!', "status" => 200], 200);
+            return Redirect::to('/admin/pelapor')->with(['showAlert' => 'Data berhasil dihapus!']);
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage(), "status" => 500], 500);
         }

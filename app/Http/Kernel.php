@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'jwt.verify' => \App\Http\Middleware\JwtMiddleware::class,
         'cors' => \App\Http\Middleware\AllowCORS::class,
         'assign.guard' => \App\Http\Middleware\JwtPelapor::class,
+        'CheckSession' =>  \App\Http\Middleware\CheckSession::class
     ];
 }

@@ -5,7 +5,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post("/check", function () {
-    return response()->json(['message' => 'work!']);
+    return response()->json(['status' => 200, 'message' => 'work!']);
+});
+
+Route::get("/check", function () {
+    return response()->json(['status' => 200, 'message' => 'work!']);
 });
 
 Route::group(['prefix' => 'admin', 'middleware' => ['cors', 'assign.guard:admin']], function () {
@@ -19,6 +23,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['cors', 'assign.guard:admin'
             Route::post("inputData", 'K3Controller@PelaporInputData');
             Route::post("editData/{id}", 'K3Controller@editData');
             Route::delete("hapusData/{id}", 'K3Controller@delete');
+            Route::post('acceptData/{id}', "K3Controller@acceptData"); //0 menunggu 1 diterima 2 ditolak
         });
         Route::group(['prefix' => 'dataAdmin'], function () {
             Route::get("getData", 'AdminController@getData');

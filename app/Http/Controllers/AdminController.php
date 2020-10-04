@@ -6,11 +6,14 @@ use App\Admin;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
-
+use App\Events\AdminDibuat;
+use App\K3;
+use App\Pelapor;
 
 class AdminController extends Controller
 {
@@ -24,27 +27,42 @@ class AdminController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validator = $request->validate([
             'nama' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:admin',
             'password' => 'required|string|min:6'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->toJson(), 400);
-        }
         $admin = Admin::create([
             'nama' => $request->input('nama'),
             'username' => $request->input('username'),
             'password' =>  Hash::make($request->input('password'))
         ]);
 
-        $cred = $request->only("username", "password");
-        $status = 201;
-        $token = JWTAuth::attempt($cred);
-        return response()->json(compact('admin', 'token', 'status'), 201);
-    }
+        $data = [
+            'notLoggedIn' => true,
+            'showAlert' => 'Anda Berhasil Register! Silahkan login'
+        ];
 
+
+        return view('login')->with($data);
+    }
+    public function store(Request $request)
+    {
+        $validator = $request->validate([
+            'nama' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:admin',
+            'password' => 'required|string|min:6'
+        ]);
+
+        $admin = Admin::create([
+            'nama' => $request->input('nama'),
+            'username' => $request->input('username'),
+            'password' =>  Hash::make($request->input('password'))
+        ]);
+        event(new AdminDibuat($admin));
+        return Redirect::to('admin/dataAdmin');
+    }
     /**
      * Login Admin
      *
@@ -53,18 +71,77 @@ class AdminController extends Controller
      */
     public function login(Request $request)
     {
-        $cred  = $request->only('username', 'password');
-        try {
-            if (!$token = JWTAuth::attempt($cred)) {
-                return response()->json(['message' => 'invalid_credentials', "status" => 400], 400);
-            }
-            $status = 200;
-        } catch (JWTException $e) {
-            return response()->json(['message' => 'could_not_create_token', "status" => 500], 500);
+        $validate_admin = Admin::where('username', $request->input('username'))
+            ->first();
+        if ($validate_admin && Hash::check($request->input('password'), $validate_admin->password)) {
+            session(['loggedin' => true, 'data' => $validate_admin]);
+            return redirect('/');
+        } else {
+            $data = [
+                'notLoggedIn' => true,
+                'showAlert' => 'Gagal login! Username atau Password anda salah'
+            ];
+            return view('login')->with($data);
         }
-        return response()->json(compact('token', 'status'));
     }
 
+    public function index(Request $request)
+    {
+        if ($request->session()->exists('loggedin')) {
+            return redirect('admin/dashboard');
+        } else {
+            return redirect('login');
+        }
+    }
+    public function show()
+    {
+        $admin = Admin::paginate(10);
+        $data = [
+            'i' => 1,
+            'dataAdmin' => $admin
+        ];
+        return view('dataAdmin.index')->with($data);
+    }
+    public function getCountData()
+    {
+        try {
+            $jumlahData = [
+                'k3Baru' => K3::where('sudah_diterima', 0)->count(),
+                'k3Diterima' => K3::where('sudah_diterima', 1)->count(),
+                'k3Ditolak' => K3::where('sudah_diterima', 2)->count(),
+                'pelapor' => Pelapor::all()->count()
+            ];
+            return response()->json([
+                'status' => 200,
+                'message' => 'berhasil mengambil data!',
+                'data' => $jumlahData
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
+        }
+    }
+    public function dashboard()
+    {
+        $jumlahData = [
+            'k3Baru' => K3::where('sudah_diterima', 0)->count(),
+            'k3Diterima' => K3::where('sudah_diterima', 1)->count(),
+            'k3Ditolak' => K3::where('sudah_diterima', 2)->count(),
+            'pelapor' => Pelapor::all()->count()
+        ];
+        $data = [
+            'pelapor' => Pelapor::all()->take(3),
+            'iA' => 1,
+            'iP' => 1,
+            'dataAdmin' => Admin::all()->take(3),
+            'jumlahData' => $jumlahData
+        ];
+        return view('index')->with($data);
+    }
+    public function logout(Request $request)
+    {
+        $request->session()->flush();
+        return redirect('/');
+    }
     public function getData()
     {
         try {
@@ -89,30 +166,24 @@ class AdminController extends Controller
         }
     }
 
-    public function editData(Request $request, $id)
+    public function editData(Request $request)
     {
         try {
 
-            $admin  = Admin::findOrFail($id);
-            $validator = Validator::make($request->all(), [
+            $admin  = Admin::findOrFail($request->input('id'));
+            $validator = $request->validate([
                 'nama' => 'required|string|max:255',
-                'username' => 'required|string|max:255|unique:admin',
+                'username' => 'required|string|max:255',
                 'password' => 'required|string|min:6'
             ]);
 
-            if ($validator->fails()) {
-                return response()->json($validator->errors()->toJson(), 400);
-            }
             $admin->update([
                 'nama' => $request->input('nama'),
                 'username' => $request->input('username'),
                 'password' =>  Hash::make($request->input('password'))
             ]);
 
-            return response()->json([
-                'status' => 200,
-                'data' => $admin
-            ]);
+            return Redirect::to('/admin/dataAdmin');
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage(), 'status' => '500'], 500);
         }
@@ -122,10 +193,21 @@ class AdminController extends Controller
         try {
             $Admin = Admin::findOrFail($id);
             $Admin->delete();
-
-            return response()->json(['message' => 'data berhasil dihapus!', "status" => 200], 200);
+            return Redirect::to('/admin/dataAdmin')->with(['showAlert' => 'Data berhasil dihapus!']);
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage(), "status" => 500], 500);
         }
+    }
+
+    public function loginGet()
+    {
+        $data = ['notLoggedIn' => true];
+        return view('login')->with($data);
+    }
+
+    public function registerGet()
+    {
+        $data = ['notLoggedIn' => true];
+        return view('register')->with($data);
     }
 }
